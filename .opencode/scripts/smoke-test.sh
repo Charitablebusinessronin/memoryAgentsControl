@@ -204,28 +204,28 @@ fi
 #############################################################################
 section "Test 9: Routing Policy Validation"
 
-if grep -q "SCOUT_RECON" ".opencode/contracts/harness-v1.md"; then
-    pass "Routing policy defines SCOUT_RECON"
+if grep -q "ContextScout" ".opencode/contracts/harness-v1.md"; then
+    pass "Routing policy defines ContextScout"
 else
-    fail "Routing policy MISSING SCOUT_RECON"
+    fail "Routing policy MISSING ContextScout"
 fi
 
-if grep -q "JOBS_INTENT_GATE" ".opencode/contracts/harness-v1.md"; then
-    pass "Routing policy defines JOBS_INTENT_GATE"
+if grep -q "OpenAgent" ".opencode/contracts/harness-v1.md"; then
+    pass "Routing policy defines OpenAgent"
 else
-    fail "Routing policy MISSING JOBS_INTENT_GATE"
+    fail "Routing policy MISSING OpenAgent"
 fi
 
-if grep -q "BROOKS_ARCHITECT" ".opencode/contracts/harness-v1.md"; then
-    pass "Routing policy defines BROOKS_ARCHITECT"
+if grep -q "CoderAgent" ".opencode/contracts/harness-v1.md"; then
+    pass "Routing policy defines CoderAgent"
 else
-    fail "Routing policy MISSING BROOKS_ARCHITECT"
+    fail "Routing policy MISSING CoderAgent"
 fi
 
-if grep -q "WOZ_BUILDER" ".opencode/contracts/harness-v1.md"; then
-    pass "Routing policy defines WOZ_BUILDER"
+if grep -q "OpenCoder" ".opencode/contracts/harness-v1.md"; then
+    pass "Routing policy defines OpenCoder"
 else
-    fail "Routing policy MISSING WOZ_BUILDER"
+    fail "Routing policy MISSING OpenCoder"
 fi
 
 #############################################################################
