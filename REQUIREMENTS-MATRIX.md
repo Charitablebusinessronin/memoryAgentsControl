@@ -72,13 +72,15 @@ This matrix traces every Business Requirement, Functional Requirement, and Use C
 
 ---
 
-### Documentation Compliance (F12–F14)
+### Documentation Compliance (F12–F16)
 
 | ID | Requirement | Satisfied by |
 |----|-------------|--------------|
-| <a name="f12"></a>F12 | All agents MUST load AI-GUIDELINES.md as required context before execution | Documentation Validation Topology · [SOLUTION-ARCHITECTURE.md §3.4](SOLUTION-ARCHITECTURE.md#34-documentation-validation-topology) |
+| <a name="f12"></a>F12 | All agents MUST load `.opencode/AI-GUIDELINES.md` as required context before execution | Documentation Validation Topology · [SOLUTION-ARCHITECTURE.md §3.4](SOLUTION-ARCHITECTURE.md#34-documentation-validation-topology) |
 | <a name="f13"></a>F13 | All agents MUST produce documentation artifacts following AI-GUIDELINES.md templates | Documentation Artifacts · [AI-GUIDELINES.md §2](.opencode/AI-GUIDELINES.md#2-required-documentation-artifacts) |
 | <a name="f14"></a>F14 | The system MUST validate documentation completeness as part of DoD | Documentation Validation Topology · [SOLUTION-ARCHITECTURE.md §3.4](SOLUTION-ARCHITECTURE.md#34-documentation-validation-topology) |
+| <a name="f15"></a>F15 | The system MUST log documentation adherence signals in performance log | Event Types · [DESIGN-LOGGING.md §Event Types](DESIGN-LOGGING.md#event-types) |
+| <a name="f16"></a>F16 | Any work that creates/changes behavior MUST update traceability artifacts (requirements + risks/decisions) per AI-GUIDELINES | Documentation Artifacts · [AI-GUIDELINES.md §2](.opencode/AI-GUIDELINES.md#2-required-documentation-artifacts) |
 
 ---
 

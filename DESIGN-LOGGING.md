@@ -120,6 +120,12 @@ CREATE INDEX idx_events_created_at ON events(created_at);
 | `APPROVAL_GRANTED` | User granted approval | `success` |
 | `APPROVAL_DENIED` | User denied approval | `failed` |
 
+### Documentation Compliance Events
+
+| Event Type | Description | Status Values |
+|------------|-------------|---------------|
+| `DOC_COMPLIANCE_CHECK` | Documentation compliance gate check | `success` or `failed` |
+
 ---
 
 ## Logging Contract
@@ -143,6 +149,30 @@ Every fallback MUST log:
 Every blocker MUST log:
 
 1. `BLOCKER_HIT` — When hard blocker is encountered
+
+Every documentation compliance check MUST log:
+
+1. `DOC_COMPLIANCE_CHECK` — Before task completion
+
+### Documentation Adherence Logging
+
+Every run MUST log documentation adherence signals:
+
+```json
+{
+  "event_type": "DOC_COMPLIANCE_CHECK",
+  "group_id": "task-123",
+  "agent_id": "woz_builder",
+  "status": "success",
+  "metadata": {
+    "guidelines_loaded": true,
+    "required_artifacts_present": true,
+    "missing_artifacts": [],
+    "traceability_updated": true,
+    "adr_written_if_needed": true
+  }
+}
+```
 
 ### Logging via MCP_DOCKER
 

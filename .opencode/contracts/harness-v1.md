@@ -150,12 +150,26 @@ CREATE TABLE IF NOT EXISTS events (
 - `APPROVAL_REQUESTED`
 - `APPROVAL_GRANTED`
 - `APPROVAL_DENIED`
+- `DOC_COMPLIANCE_CHECK`
 
 **Logging Contract:**
 - Every agent invocation MUST log `AGENT_INVOKED` + `AGENT_COMPLETED` or `AGENT_FAILED`
 - Every task MUST log `TASK_START` + `TASK_COMPLETE` or `TASK_FAILED`
 - Fallbacks MUST log `FALLBACK_TRIGGERED`
 - Blockers MUST log `BLOCKER_HIT`
+- Documentation compliance MUST log `DOC_COMPLIANCE_CHECK`
+
+**Performance Logging (must include doc adherence):**
+Every run logs:
+- `task_type` — Category of work
+- `route_selected` — Primary + fallback chain
+- `outcome` — success/fail/stuck
+- `latency_metrics` — TTFP, TTFVC, TTDOD
+- `doc_compliance`:
+  - `guidelines_loaded`: yes/no
+  - `required_artifacts_present`: pass/fail + missing list
+  - `traceability_updated`: pass/fail
+  - `adr_written_if_needed`: yes/no/not-applicable
 
 **Validation:**
 ```bash
@@ -168,7 +182,13 @@ psql -d allura -c "SELECT COUNT(*) FROM events WHERE agent_id = 'scout_recon';"
 
 ## 5. Documentation Compliance Gate
 
-**Rule:** All agents MUST load AI-GUIDELINES.md as required context before execution.
+**Rule:** All agents MUST load `.opencode/AI-GUIDELINES.md` as required context before execution. This is not "nice to have." It is a routing gate, a logging signal, and part of Definition of Done.
+
+**Compliance Rules (hard gates):**
+1. No agent may produce a "final" plan without confirming AI-GUIDELINES.md was loaded
+2. DoD MUST include documentation artifacts validation
+3. Performance logging MUST include documentation adherence signals
+4. Any work that creates/changes behavior MUST update traceability artifacts (requirements + risks/decisions) per AI-GUIDELINES
 
 **Required Artifacts:**
 1. `BLUEPRINT.md` — Single source of design intent
@@ -179,11 +199,24 @@ psql -d allura -c "SELECT COUNT(*) FROM events WHERE agent_id = 'scout_recon';"
 6. `RISKS-AND-DECISIONS.md` — Architectural decisions and risks
 7. `DATA-DICTIONARY.md` — Field-level reference
 
+**DOC COMPLIANCE GATE (always-on):**
+Before any agent marks a task complete, it must output:
+- AI-GUIDELINES.md loaded? (yes/no)
+- Which required artifacts were created/updated? (list)
+- Requirements Matrix updated? (yes/no)
+- Risks & Decisions updated? (yes/no)
+
+If any answer is "no", the task is not complete and must continue.
+
 **Validation:**
 ```bash
 # Check if all artifacts exist
 ls -1 BLUEPRINT.md SOLUTION-ARCHITECTURE.md DESIGN-ROUTING.md DESIGN-LOGGING.md REQUIREMENTS-MATRIX.md RISKS-AND-DECISIONS.md DATA-DICTIONARY.md
 # Expected: All files listed
+
+# Check if AI-GUIDELINES.md exists
+ls -1 .opencode/AI-GUIDELINES.md
+# Expected: File exists
 ```
 
 ---
@@ -240,6 +273,20 @@ Before considering the harness "bootable," validate:
 - [ ] **Documentation complete** — All 7 artifacts exist and are valid
 - [ ] **Routing policy enforced** — Tasks route to correct agents based on task type
 - [ ] **Fallback routing works** — Primary agent failure triggers fallback agent
+- [ ] **AI-GUIDELINES.md loaded** — All agents confirm `.opencode/AI-GUIDELINES.md` loaded before execution
+
+## 8. Definition of Done (DoD)
+
+A run is NOT DONE unless:
+
+- [ ] **Acceptance criteria pass** — All testable conditions satisfied
+- [ ] **Smoke tests pass** — Harness runnable
+- [ ] **Documentation artifacts exist** — All required artifacts present
+- [ ] **Requirements Matrix updated** — References relevant design docs/routes
+- [ ] **Risks & Decisions updated** — Significant decisions documented
+- [ ] **Performance log entry recorded** — Includes doc adherence signals
+- [ ] **AI-GUIDELINES.md loaded** — Confirmed before execution
+- [ ] **DOC COMPLIANCE GATE passed** — All compliance questions answered "yes"
 
 ---
 

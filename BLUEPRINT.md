@@ -134,9 +134,11 @@ The Routing Policy is a deterministic rule set that selects the best agent for a
 
 | # | Requirement |
 |---|-------------|
-| F12 | All agents MUST load AI-GUIDELINES.md as required context before execution |
+| F12 | All agents MUST load `.opencode/AI-GUIDELINES.md` as required context before execution |
 | F13 | All agents MUST produce documentation artifacts following AI-GUIDELINES.md templates |
 | F14 | The system MUST validate documentation completeness as part of DoD |
+| F15 | The system MUST log documentation adherence signals in performance log |
+| F16 | Any work that creates/changes behavior MUST update traceability artifacts (requirements + risks/decisions) per AI-GUIDELINES |
 
 ---
 

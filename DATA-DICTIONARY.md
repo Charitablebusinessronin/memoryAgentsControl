@@ -133,6 +133,7 @@ Schema: [events.schema.json](json-schema/events.schema.json)
 | `APPROVAL_REQUESTED` | Agent requested approval (DAY_BUILD mode) |
 | `APPROVAL_GRANTED` | User granted approval |
 | `APPROVAL_DENIED` | User denied approval |
+| `DOC_COMPLIANCE_CHECK` | Documentation compliance gate check |
 
 **`status` values**
 
@@ -151,6 +152,17 @@ Schema: [events.schema.json](json-schema/events.schema.json)
 | `from_agent` | string | Source agent for fallback events |
 | `to_agent` | string | Target agent for fallback events |
 | `reason` | string | Reason for blocker or approval |
+| `doc_compliance` | object | Documentation adherence signals |
+
+**`doc_compliance` shape**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `guidelines_loaded` | boolean | AI-GUIDELINES.md loaded before execution |
+| `required_artifacts_present` | boolean | All required artifacts exist |
+| `missing_artifacts` | array | List of missing artifact paths |
+| `traceability_updated` | boolean | Requirements Matrix updated |
+| `adr_written_if_needed` | boolean | ADR written for significant decisions |
 
 ---
 

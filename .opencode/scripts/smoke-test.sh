@@ -81,6 +81,13 @@ for doc in "${DOCS[@]}"; do
     fi
 done
 
+# Check AI-GUIDELINES.md exists
+if [ -f ".opencode/AI-GUIDELINES.md" ]; then
+    pass "AI-GUIDELINES.md exists"
+else
+    fail "AI-GUIDELINES.md MISSING"
+fi
+
 #############################################################################
 # Test 3: Harness Contract
 #############################################################################
