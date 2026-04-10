@@ -1,0 +1,255 @@
+# Minimum Bootable Harness Contract (v1)
+
+> [!NOTE]
+> **AI-Assisted Documentation**
+> Portions of this document were drafted with the assistance of an AI language model (GitHub Copilot).
+> Content has not yet been fully reviewed — this is a working design reference, not a final specification.
+> AI-generated content may contain inaccuracies or omissions.
+> When in doubt, defer to the source code, JSON schemas, and team consensus.
+
+This contract defines the minimum viable harness for deterministic multi-agent orchestration. It specifies the commands, routing policy, and logging contract required to execute tasks in both DAY_BUILD and NIGHT_BUILD modes.
+
+---
+
+## 1. DAY_BUILD Command
+
+**Command:** `opencode run --mode=day`
+
+**Behavior:**
+- Interactive execution with approval gates
+- Stops on ambiguous routing (asks user)
+- Logs all events to Postgres
+- Validates each step before proceeding
+
+**Entrypoint:** `.opencode/command/run-day.md`
+
+**Validation:**
+```bash
+opencode run --mode=day --task="test scout"
+# Expected: SCOUT_RECON invoked, report generated, approval requested
+```
+
+**Execution Flow:**
+1. Load AI-GUIDELINES.md as required context
+2. Invoke SCOUT_RECON to produce Scout Report
+3. Invoke JOBS_INTENT_GATE to produce Intent Brief + Acceptance Criteria
+4. Request approval from user
+5. If approved, invoke BROOKS_ARCHITECT to produce Contracts/ADRs
+6. Request approval from user
+7. If approved, invoke WOZ_BUILDER to implement step-by-step
+8. Invoke PIKE_INTERFACE_REVIEW to validate interfaces
+9. Invoke FOWLER_REFACTOR_GATE to prevent debt
+10. Validate documentation completeness
+11. Log TASK_COMPLETE
+
+---
+
+## 2. NIGHT_BUILD Command
+
+**Command:** `opencode run --mode=night`
+
+**Behavior:**
+- No-brakes execution (no clarifying questions unless destructive)
+- Picks best-known route immediately
+- Executes → validates → continues
+- Stops ONLY on: hard blocker, explicit user stop, or DoD satisfied
+
+**Entrypoint:** `.opencode/command/run-night.md`
+
+**Validation:**
+```bash
+opencode run --mode=night --task="fix lint errors"
+# Expected: WOZ_BUILDER invoked, fixes applied, validation run, no approval needed
+```
+
+**Execution Flow:**
+1. Load AI-GUIDELINES.md as required context
+2. Invoke SCOUT_RECON to produce Scout Report
+3. Invoke JOBS_INTENT_GATE to produce Intent Brief + Acceptance Criteria
+4. Invoke BROOKS_ARCHITECT to produce Contracts/ADRs + select route
+5. Invoke WOZ_BUILDER to implement step-by-step with validations
+6. Invoke PIKE_INTERFACE_REVIEW to reject unnecessary surface area
+7. Invoke FOWLER_REFACTOR_GATE to prevent debt
+8. Invoke BELLARD_DIAGNOSTICS_PERF (only if perf constraint)
+9. Validate documentation completeness
+10. Log TASK_COMPLETE
+
+---
+
+## 3. Deterministic Routing Policy (v1)
+
+**Rule:** Choose ONE best route based on Performance Log + role constraints.
+
+### Routing Table
+
+| Task Type | Primary Agent | Fallback Agent | Condition |
+|-----------|---------------|----------------|-----------|
+| Discovery | SCOUT_RECON | None | Always |
+| Intent/Scope | JOBS_INTENT_GATE | None | Always |
+| Architecture | BROOKS_ARCHITECT | None | Always |
+| Implementation | WOZ_BUILDER | PIKE_INTERFACE_REVIEW (if interface added) | Always |
+| Refactor | FOWLER_REFACTOR_GATE | None | Always |
+| Performance | BELLARD_DIAGNOSTICS_PERF | None | Only if perf constraint |
+| Validation | PIKE_INTERFACE_REVIEW | FOWLER_REFACTOR_GATE | Always |
+
+### Fallback Logic
+
+```
+function selectFallbackAgent(taskType, primaryAgent, error):
+    fallbackAgent = routingTable[taskType].fallbackAgent
+    
+    if fallbackAgent is None:
+        log BLOCKER_HIT (reason="No fallback agent for task type")
+        return BROOKS_ARCHITECT  // Escalate to architect
+    
+    if error is "Agent exceeded authority":
+        log BLOCKER_HIT (reason="Authority violation")
+        return BROOKS_ARCHITECT  // Escalate to architect
+    
+    if error is "Agent failed validation":
+        log FALLBACK_TRIGGERED (from=primaryAgent, to=fallbackAgent)
+        return fallbackAgent
+    
+    return fallbackAgent
+```
+
+### Conflict Resolution
+
+- **Performance evidence inconclusive** → BROOKS_ARCHITECT decides
+- **Architecture ambiguous** → BROOKS_ARCHITECT decides
+- **Destructive decision required** → JOBS_INTENT_GATE must approve
+
+---
+
+## 4. Performance Logging Event Schema (v1)
+
+**Table:** `events`
+
+**Columns:**
+```sql
+CREATE TABLE IF NOT EXISTS events (
+  id SERIAL PRIMARY KEY,
+  event_type VARCHAR(100) NOT NULL,
+  group_id VARCHAR(100) NOT NULL,
+  agent_id VARCHAR(100) NOT NULL,
+  status VARCHAR(50) NOT NULL,
+  metadata JSONB,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+**Event Types:**
+- `TASK_START`
+- `TASK_COMPLETE`
+- `TASK_FAILED`
+- `AGENT_INVOKED`
+- `AGENT_COMPLETED`
+- `AGENT_FAILED`
+- `FALLBACK_TRIGGERED`
+- `BLOCKER_HIT`
+- `APPROVAL_REQUESTED`
+- `APPROVAL_GRANTED`
+- `APPROVAL_DENIED`
+
+**Logging Contract:**
+- Every agent invocation MUST log `AGENT_INVOKED` + `AGENT_COMPLETED` or `AGENT_FAILED`
+- Every task MUST log `TASK_START` + `TASK_COMPLETE` or `TASK_FAILED`
+- Fallbacks MUST log `FALLBACK_TRIGGERED`
+- Blockers MUST log `BLOCKER_HIT`
+
+**Validation:**
+```bash
+# Check if logging works
+psql -d allura -c "SELECT COUNT(*) FROM events WHERE agent_id = 'scout_recon';"
+# Expected: > 0 after smoke test
+```
+
+---
+
+## 5. Documentation Compliance Gate
+
+**Rule:** All agents MUST load AI-GUIDELINES.md as required context before execution.
+
+**Required Artifacts:**
+1. `BLUEPRINT.md` — Single source of design intent
+2. `SOLUTION-ARCHITECTURE.md` — Topological view
+3. `DESIGN-ROUTING.md` — Routing policy design
+4. `DESIGN-LOGGING.md` — Performance logging design
+5. `REQUIREMENTS-MATRIX.md` — Requirements traceability
+6. `RISKS-AND-DECISIONS.md` — Architectural decisions and risks
+7. `DATA-DICTIONARY.md` — Field-level reference
+
+**Validation:**
+```bash
+# Check if all artifacts exist
+ls -1 BLUEPRINT.md SOLUTION-ARCHITECTURE.md DESIGN-ROUTING.md DESIGN-LOGGING.md REQUIREMENTS-MATRIX.md RISKS-AND-DECISIONS.md DATA-DICTIONARY.md
+# Expected: All files listed
+```
+
+---
+
+## 6. Quick Start
+
+### DAY_BUILD Mode (Interactive)
+
+```bash
+# Submit a task in DAY_BUILD mode
+opencode run --mode=day --task="create hello world file"
+
+# Expected flow:
+# 1. SCOUT_RECON produces Scout Report
+# 2. JOBS_INTENT_GATE produces Intent Brief + Acceptance Criteria
+# 3. User approves
+# 4. BROOKS_ARCHITECT produces Contracts/ADRs
+# 5. User approves
+# 6. WOZ_BUILDER implements
+# 7. PIKE_INTERFACE_REVIEW validates
+# 8. FOWLER_REFACTOR_GATE prevents debt
+# 9. Documentation validated
+# 10. TASK_COMPLETE logged
+```
+
+### NIGHT_BUILD Mode (No Brakes)
+
+```bash
+# Submit a task in NIGHT_BUILD mode
+opencode run --mode=night --task="fix lint errors"
+
+# Expected flow:
+# 1. SCOUT_RECON produces Scout Report
+# 2. JOBS_INTENT_GATE produces Intent Brief + Acceptance Criteria
+# 3. BROOKS_ARCHITECT produces Contracts/ADRs + selects route
+# 4. WOZ_BUILDER implements
+# 5. PIKE_INTERFACE_REVIEW validates
+# 6. FOWLER_REFACTOR_GATE prevents debt
+# 7. Documentation validated
+# 8. TASK_COMPLETE logged
+# No approvals needed unless destructive change
+```
+
+---
+
+## 7. Validation Checklist
+
+Before considering the harness "bootable," validate:
+
+- [ ] **Upstream remote configured** — `git remote -v` shows both `origin` and `upstream`
+- [ ] **DAY_BUILD command works** — `opencode run --mode=day --task="test scout"` succeeds
+- [ ] **NIGHT_BUILD command works** — `opencode run --mode=night --task="fix lint errors"` succeeds
+- [ ] **Performance logging works** — `SELECT COUNT(*) FROM events WHERE agent_id = 'scout_recon';` returns > 0
+- [ ] **Documentation complete** — All 7 artifacts exist and are valid
+- [ ] **Routing policy enforced** — Tasks route to correct agents based on task type
+- [ ] **Fallback routing works** — Primary agent failure triggers fallback agent
+
+---
+
+## 8. References
+
+- [BLUEPRINT.md](../../BLUEPRINT.md) — Single source of design intent
+- [SOLUTION-ARCHITECTURE.md](../../SOLUTION-ARCHITECTURE.md) — Topological view
+- [DESIGN-ROUTING.md](../../DESIGN-ROUTING.md) — Routing policy design
+- [DESIGN-LOGGING.md](../../DESIGN-LOGGING.md) — Performance logging design
+- [REQUIREMENTS-MATRIX.md](../../REQUIREMENTS-MATRIX.md) — Requirements traceability
+- [RISKS-AND-DECISIONS.md](../../RISKS-AND-DECISIONS.md) — Architectural decisions and risks
+- [DATA-DICTIONARY.md](../../DATA-DICTIONARY.md) — Field-level reference
+- [AI-GUIDELINES.md](../AI-GUIDELINES.md) — Documentation standards
