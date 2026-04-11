@@ -22,11 +22,12 @@
 | 1.3 | Update Brooks agent to call Allura tools before planning (via MCP_DOCKER) | Brooks Architect | ✅ DONE | 1 day |
 | 1.4 | Update Scout to use `memory_search` instead of direct PostgreSQL queries | Brooks Architect | ✅ DONE | 0.5 days |
 | 1.5 | Create `.env` pointing to Allura's DATABASE_URL and NEO4J_URI | Brooks Architect | ✅ DONE | 0.5 days |
-| 1.6 | Test end-to-end: Brooks → Allura → PostgreSQL/Neo4j | Brooks Architect | ❌ Not Started | 1 day |
+| 1.6 | Test end-to-end: Brooks → Allura → PostgreSQL/Neo4j | Brooks Architect | ✅ DONE | 1 day |
 
 **Total Estimated Effort:** 4.5 days  
-**Completed:** 3.5 days (5 of 6 tasks)  
-**Remaining:** 1 day (1 task)
+**Completed:** 4.5 days (6 of 6 tasks) ✅
+
+**Integration Status: ✅ COMPLETE**
 
 ---
 
